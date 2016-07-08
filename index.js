@@ -71,29 +71,40 @@ function buildThenable() {
 
 function setup(sinon) {
   function resolves(value) {
+    if (this.thenable) {
+      this.thenable.onFulfilled
+        .concat(this.thenable.onFinally)
+        .forEach(function(callback) {
+          callback(value);
+      });
+    }
+    this.thenable = buildThenable();
     this.thenable.resolved = true;
     this.thenable.rejected = false;
     this.thenable.resolveValue = value;
-    this.thenable.onFulfilled
-      .concat(this.thenable.onFinally)
-      .forEach(function(callback) {
-        callback(value);
-    });
+    this.returns(this.thenable);
     return this;
   }
 
   function rejects(value) {
+    if(this.thenable) {
+        this.thenable.onRejected
+          .concat(this.thenable.onFinally)
+          .forEach(function(callback) {
+            callback(value);
+        });
+    }
+    this.thenable = buildThenable();
     this.thenable.rejected = true;
     this.thenable.resolved = false;
     this.thenable.rejectValue = value;
-    this.thenable.onRejected
-      .concat(this.thenable.onFinally)
-      .forEach(function(callback) {
-        callback(value);
-    });
+    this.returns(this.thenable);
     return this;
   }
-
+  sinon.stub.resolves = resolves;
+  sinon.stub.rejects = rejects;
+  sinon.behavior.resolves = resolves;
+  sinon.behavior.rejects = rejects;
   sinon.stub.returnsPromise = function() {
     this.resolves = resolves;
     this.rejects = rejects;

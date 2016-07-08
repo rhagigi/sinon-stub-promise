@@ -16,6 +16,36 @@ describe('stubPromise', function() {
     rejectValue = null;
     promise = sinon.stub().returnsPromise();
   });
+  it('works with withArgs()', function(){
+    var myStub = sinon.stub();
+    myStub.withArgs(42).returnsPromise().resolves('firstValue');
+    myStub.withArgs(1).returnsPromise().resolves('anotherValue');
+
+    myStub(42).then(function(arg) {
+      resolveValue = arg;
+    });
+    expect(resolveValue).to.equal('firstValue');
+
+    myStub(1).then(function(arg) {
+      resolveValue = arg;
+    });
+    expect(resolveValue).to.equal('anotherValue');
+  });
+  it('works with withArgs after returnsPromise', function(){
+    var myStub = sinon.stub().returnsPromise();
+    myStub.withArgs(42).resolves('firstValue');
+    myStub.withArgs(1).resolves('anotherValue');
+
+    myStub(42).then(function(arg) {
+      resolveValue = arg;
+    });
+    expect(resolveValue).to.equal('firstValue');
+
+    myStub(1).then(function(arg) {
+      resolveValue = arg;
+    });
+    expect(resolveValue).to.equal('anotherValue');
+  });
 
   it('works without requiring explicit resolve or reject', function(done) {
     promise().then(f).catch(f).finally(f);
